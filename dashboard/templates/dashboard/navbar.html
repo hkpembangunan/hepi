@@ -1,0 +1,68 @@
+{% load dashboard_extras %}
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-inner slimscroll">
+        <div id="sidebar-menu" class="sidebar-menu">
+            <ul>
+                <li class="menu-title">
+                    <span>Main Menu</span>
+                </li>
+                <li class="{% if 'dashboard' in request.resolver_match.url_name %} active{% endif %}">
+                    <a href="{% url 'dashboard' %}"><i class="fas fa-border-all"></i> <span> Dashboard</span></a>
+                    {% comment %} <ul> {% endcomment %}
+                        {% comment %} <li><a href="/" class="active">Admin</a></li> {% endcomment %}
+                        {% comment %} <li><a href="teacher-dashboard.php">Mandor</a></li> {% endcomment %}
+                        {% comment %} <li><a href="student-dashboard.html">Worker</a></li> {% endcomment %}
+                    {% comment %} </ul> {% endcomment %}
+                </li>
+                {% is_left_role_higher_than_or_equal user.role "PIC" as htpic %}
+                {% if htpic %}
+                <li class="submenu{% if 'workers' in request.resolver_match.url_name %} active{% endif %}">
+                    <a href="#"><i class="fas fa-user"></i> <span> Workers</span> <span
+                            class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'workers' %}" class="{% if request.resolver_match.url_name == 'workers' %} active{% endif %}">List</a></li>
+                        <li><a href="{% url 'workers_add' %}" class="{% if request.resolver_match.url_name == 'workers_add' %} active{% endif %}">Add</a></li>
+                        <li><a href="{% url 'workers_notifications' %}" class="{% if request.resolver_match.url_name == 'workers_notifications' %} active{% endif %}">Notifications</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+                {% is_left_role_higher_than_or_equal user.role "PRD" as htdir %}
+                {% if htdir %}
+                <li class="submenu{% if 'projects' in request.resolver_match.url_name %} active{% endif %}">
+                    <a href="#"><i class="fas fa-diagram-project"></i> <span> Projects</span> <span
+                            class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'projects' %}" class="{% if request.resolver_match.url_name == 'projects' %} active{% endif %}"> List</a></li>
+                        {% if user.role == "ADM" %}
+                        <li><a href="{% url 'projects_add' %}" class="{% if request.resolver_match.url_name == 'projects_add' %} active{% endif %}"> Add</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                {% if htpic %}
+                <li class="submenu{% if 'sites' in request.resolver_match.url_name %} active{% endif %}">
+                    <a href="#"><i class="fas fa-location-dot"></i> <span> Sites</span> <span
+                            class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'sites' %}" class="{% if request.resolver_match.url_name == 'sites' %} active{% endif %}">List</a></li>
+                        {% if htdir %}
+                        <li><a href="{% url 'sites_add' %}" class="{% if request.resolver_match.url_name == 'sites_add' %} active{% endif %}">Add</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                <li class="submenu{% if 'helmets' in request.resolver_match.url_name %} active{% endif %}">
+                    <a href="#"><i class="fas fa-helmet-safety"></i> <span> Helmets</span> <span
+                            class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'helmets' %}" class="{% if request.resolver_match.url_name == 'helmets' %} active{% endif %}">List</a></li>
+                        {% if user.role == "ADM" %}
+                        <li><a href="{% url 'helmets_add' %}" class="{% if request.resolver_match.url_name == 'helmets_add' %} active{% endif %}">Add</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+

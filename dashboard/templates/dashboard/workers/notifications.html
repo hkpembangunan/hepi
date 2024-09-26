@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load dashboard_extras %}
+
+
+{% block css %}
+{% endblock css %}
+
+{% block navbar %}
+    {% with nav_header_displayed=True %}
+        {{block.super}}
+    {% endwith %}
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        
+        {% with title='Worker Notifications' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Workers' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        <form method="GET">
+            <div class="form-group row" style="row-gap: 10px;">
+                <label class="col-form-label col-1">Site</label>
+                <div class="col-lg-5 col-md-12">
+                    <select style="display: inline-block;" class="form-control searchable" name="site_id" onchange="
+                        this.form.submit();
+                    ">
+                        <option value="all" {% if request.GET.site_id == 'all' %}selected{% endif %}>All</option>
+                        {% for sites_in_project in sites|select_group_by:"project.name"%}
+                            <optgroup label="{{sites_in_project.0.project.name|to_title}}">
+                                {% for site in sites_in_project%}
+                                    <option value="{{site.id}}" {% if request.GET.site_id == site.id|to_string %}selected{% endif %}>{{site.name|to_title}}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-5 col-md-12">
+                    <select style="display: inline-block;" class="form-control searchable" name="notification_type" onchange="
+                        this.form.submit();
+                    ">
+                    <option value="unresolved" {% if request.GET.notification_type == 'unresolved' %}selected{% endif %}>Unresolved</option>
+                    <option value="all" {% if request.GET.notification_type == 'all' %}selected{% endif %}>All</option>
+                    <option value="resolved" {% if request.GET.notification_type == 'resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        {% with notifications=notifications title='Notifications' view_only=False %}
+            {% include 'dashboard/components/notif-table.html' %}
+        {% endwith %} 
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    $(document).ready(function() {
+        let dt = $('#notif_table .datatables').DataTable();
+        dt.order([5, 'desc'], [0, 'desc']).draw();
+    });
+    if (notif_socket) {
+        notif_socket.addEventListener('message', function(e) {
+            let data = JSON.parse(e.data);
+            let dt = $('#notif_table .datatables').DataTable();
+            dt.row.add([
+                data['timestamp'],
+                `<b>${data['message']}</b>`,
+                data['helmet_identifier'],
+                `<b>${data['helmet_user_fullname']}</b>`,
+                data['helmet_site_name'],
+               "<span class=\"badge bg-danger-bright text-danger\">Not Resolved</span>",
+               `
+               <div class="actions">
+                <a href="{% url 'workers' %}?name=${data.helmet_user_fullname.replace("#", "%23")}&site=${data.helmet_site_id}"
+                    class="btn btn-sm bg-success-light me-2">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <form method="POST" action="{% url 'helmets_notification_done' %}"
+                    class="d-inline">
+                    <input type="hidden" name="helmet_notif_id" value="${data.id}">
+                    <input type="hidden" name="redirect_to" value="{{request.path|str_b64}}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm bg-success-light tbl-btn-success warn-action">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </form>
+                </div>
+               `
+            ]).draw();
+        })
+    }
+</script>
+{% endblock javascript %}

@@ -1,0 +1,602 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block navbar %}
+{% with nav_header_displayed=True  %}
+{{block.super}}
+{% endwith %} 
+{% endblock navbar %}
+
+{% block css %}
+<style>
+.bg-success {
+    background-color: #28a745 !important;
+}
+.badge {
+    color: #fff !important;
+}
+.card-btn {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+.card-btn:hover {
+    transform: scale(1.1);
+}
+</style>
+{% endblock css %}
+
+{% load dashboard_extras %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Selamat Datang, '|addstr:user.first_name|addstr:' '|addstr:user.last_name up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Dashboard' %}
+        {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %} 
+        <div class="row">
+            {% if counts.worker != None %}
+            <a class="col-xl-4 col-sm-6 col-12 d-flex" href="{% url 'workers' %}">
+                <div class="card bg-comman w-100">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h6>Active Workers</h6>
+                                <h3>{{counts.worker}}</h3>
+                            </div>
+                            <div class="db-icon">
+                                <img src="{% static 'dashboard/img/icons/worker.png' %}" alt="Dashboard Icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+            {% if counts.project != None %}
+            <a class="col-xl-4 col-sm-6 col-12 d-flex" href="{% url 'projects' %}">
+                <div class="card bg-comman w-100">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h6>Active Projects</h6>
+                                <h3>{{counts.project}}</h3>
+                            </div>
+                            <div class="db-icon">
+                                <img src="{% static 'dashboard/img/icons/crane_tower.png' %}" alt="Dashboard Icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+            {% if counts.site != None %}
+            <a class="col-xl-4 col-sm-6 col-12 d-flex" href="{% url 'sites' %}">
+                <div class="card bg-comman w-100">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h6>Active Sites</h6>
+                                <h3>{{counts.site}}</h3>
+                            </div>
+                            <div class="db-icon">
+                                <img src="{% static 'dashboard/img/icons/map-marker.png' %}" alt="Dashboard Icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+            {% if counts.helmet != None %}
+            <a class="col-xl-4 col-sm-6 col-12 d-flex" href="{% url 'helmets' %}">
+                <div class="card bg-comman w-100">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h6>Active Helmets</h6>
+                                <h3>{{counts.helmet}}</h3>
+                            </div>
+                            <div class="db-icon">
+                                <img src="{% static 'dashboard/img/icons/helmet.png' %}" alt="Dashboard Icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        {% if user.role == "PRD" %}
+        <div class="row">
+            <div class="col-12 col-lg-8 col-xl-8 d-flex" style="height: fit-content;">
+                <div class="card flex-fill comman-shadow">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <h5 class="card-title">Active and Upcoming Projects</h5>
+                            </div>
+                            <div class="col-6">
+                                <span class="float-end view-link"><a href="{% url 'projects' %}">View All Projects</a></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-3 pb-3">
+                        <div class="table-responsive lesson">
+                            <table class="table table-center">
+                                <tbody>
+                                    {% for instance in active_and_upcoming %}
+                                    <tr>
+                                        <td>
+                                            <div class="date">
+                                                <b><a href="{% url 'projects_view' instance.id %}" style="all: unset; cursor: pointer;">{{instance.name|title}}</a></b>
+                                                <p><strong>
+                                                {% count_days start_date=instance.start_date end_date="now" as daycount %}
+                                                {% if instance.actual_end_date %}
+                                                    Ended In {{instance.actual_end_date}}
+                                                {% else %}
+                                                    {% if daycount < 0 %}
+                                                        Not Started Yet ({{daycount|abs_v}} days left)
+                                                    {% elif daycount == 0 %}
+                                                        Started Today
+                                                    {% else %}
+                                                        Ongoing ({{daycount}} days)
+                                                    {% endif %}
+                                                {% endif %}
+                                                </strong>
+                                                </p>
+                                                <ul class="teacher-date-list">
+                                                    <li><i class="fas fa-calendar-alt me-2"></i>{{instance.start_date}} - {{instance.expected_end_date}}</li>
+                                                    <li>&nbsp;</li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a class="btn btn-info" href="{% url 'projects_edit' instance.id %}">Reschedule / Edit</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4 col-xl-4 d-flex">
+                <div class="card flex-fill student-space comman-shadow">
+                    <div class="card-header d-flex align-items-center">
+                        <h5 class="card-title">Top Workers</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if top_workers %}
+                        <div class="table-responsive">
+                            <table
+                                class="table star-student table-hover table-center table-borderless table-striped">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for worker in top_workers %}
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <div>{{forloop.counter}}</div>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <div>{{worker.id}}</div>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <a href="{% url 'profile_view' worker.id %}">
+                                                <img class="rounded-circle"
+                                                    src="https://placehold.co/100x100" width="25"
+                                                    alt="Star Students">
+                                                {{worker.first_name|title}} {{worker.last_name|title}}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        No data
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.role == "PIC" %}
+        <div class="row">
+            <div class="col-12 col-lg-8 col-xl-8 d-flex" style="height: fit-content;">
+                <div class="card flex-fill comman-shadow">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <h5 class="card-title">Active and Upcoming Sites</h5>
+                            </div>
+                            <div class="col-6">
+                                <span class="float-end view-link"><a href="{% url 'sites' %}">View All Sites</a></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-3 pb-3">
+                        <div class="table-responsive lesson">
+                            <table class="table table-center">
+                                <tbody>
+                                    {% for instance in active_and_upcoming %}
+                                    <tr>
+                                        <td>
+                                            <div class="date">
+                                                <b><a href="{% url 'sites_view' instance.id %}" style="all: unset; cursor: pointer;">{{instance.name|title}}</a></b>
+                                                <p><strong>
+                                                {% count_days start_date=instance.start_date end_date="now" as daycount %}
+                                                {% if instance.actual_end_date %}
+                                                    Ended In {{instance.actual_end_date}}
+                                                {% else %}
+                                                    {% if daycount < 0 %}
+                                                        Not Started Yet ({{daycount|abs_v}} days left)
+                                                    {% elif daycount == 0 %}
+                                                        Started Today
+                                                    {% else %}
+                                                        Ongoing ({{daycount}} days)
+                                                    {% endif %}
+                                                {% endif %}
+                                                </strong>
+                                                </p>
+                                                <ul class="teacher-date-list">
+                                                    <li><i class="fas fa-calendar-alt me-2"></i>{{instance.start_date}} - {{instance.expected_end_date}}</li>
+                                                    <li>&nbsp;</li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a class="btn btn-info" href="{% url 'sites_edit' instance.id %}">Reschedule / Edit</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4 col-xl-4 d-flex">
+                <div class="card flex-fill student-space comman-shadow">
+                    <div class="card-header d-flex align-items-center">
+                        <h5 class="card-title">Top Workers</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if top_workers %}
+                        <div class="table-responsive">
+                            <table
+                                class="table star-student table-hover table-center table-borderless table-striped">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for worker in top_workers %}
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <div>{{forloop.counter}}</div>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <div>{{worker.id}}</div>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <a href="{% url 'profile_view' worker.id %}">
+                                                <img class="rounded-circle"
+                                                    src="https://placehold.co/100x100" width="25"
+                                                    alt="Star Students">
+                                                {{worker.first_name|title}} {{worker.last_name|title}}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        No data
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% is_left_role_higher_than_or_equal user.role "PIC" as htpic %}
+        {% if htpic %}
+        <div class="row">
+            <div class="col-xl-9 d-flex flex-column">
+                <div class="form-group row" style="row-gap: 10px;">
+                    <label class="col-form-label col-1">Site</label>
+                    <div class="col-12 col-md-11">
+
+                        <form method="GET" action="/#dash_urn">
+                        <select style="display: inline-block; width: 100%;" class="form-control searchable" name="urn_site_id" onchange="
+                            this.form.submit();
+                        ">
+                            <option value="all" {% if request.GET.urn_site_id == 'all' %}selected{% endif %}>All</option>
+                            {% for sites_in_project in sites|select_group_by:"project.name"%}
+                                <optgroup label="{{sites_in_project.0.project.name|to_title}}">
+                                    {% for site in sites_in_project%}
+                                        <option value="{{site.id}}" {% if request.GET.urn_site_id == site.id|to_string %}selected{% endif %}>{{site.name|to_title}}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endfor %}
+                        </select>
+                        </form>
+                    </div>
+                </div>
+                <div class="row" style="padding: 0 12px;">
+                    <div class="card flex-fill comman-shadow">
+                        <div class="card-header">
+                            <div class="row align-items-center">
+                                <div class="col-6">
+                                    <h5 class="card-title">Unresolved Notifications</h5>
+                                </div>
+                                <div class="col-6">
+                                    <span class="float-end view-link"><a href="{% url 'workers_notifications' %}?site_id={{request.GET.urn_site_id}}&notification_type=all">View All Notifications</a></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-groups" id="dash_urn">
+                                {% if unresolved_notifications|length > 0 %}
+                                {% for notif in unresolved_notifications %}
+                                <div class="activity-awards {% if forloop.counter == unresolved_notifications|length %}mb-0{% endif %}">
+                                    <div class="award-boxs">
+                                        <img src="{% static 'dashboard/img/icons/worker.png' %}" alt="Award">
+                                    </div>
+                                    <div class="award-list-outs">
+                                        <h4>{{notif.message}}</h4>
+                                        <h5>{{notif.user.first_name|title}} {{notif.user.last_name|title}} in {{notif.site.name}}</h5>
+                                    </div>
+                                    <div class="award-time-list">
+                                        <span class="d-block">{{notif.timestamp|timesince}} ago</span>
+                                        <a class="btn btn-info py-1 mt-3 {% if forloop.counter != unresolved_notifications|length %}mb-4{% endif %} mb-md-0 float-end w-100" style="color: white; background-color: #3e5ee1; font-weight: 500; font-size: 0.8rem;" href="{% url 'workers' %}?name={{notif.user.first_name|title}} {{notif.user.last_name|title}}&site={{notif.site.id}}">View</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                No unresolved notification for this site
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-3 d-flex" style="height: fit-content;">
+                <div class="card flex-fill comman-shadow">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-12">
+                                <h5 class="card-title">Notification Indicator</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dash-widget">
+                        <div class="circle-bar circle-bar1">
+                            <div class="circle-graph1" id="graph-pct" data-percent="{% ratio_percent nominator=resolved_notification_counter denominator=all_notification_counter %}">
+                                <div class="progress-less">
+                                    <b><span id="rnctr">{{resolved_notification_counter}}</span>/<span id="anctr">{{all_notification_counter}}</span></b>
+                                    <p>Issues Solved</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if user.role == "WRK" %}
+        <div class="row">
+            <a class="col-xl-4 col-sm-6 col-12 d-flex" href="{% url 'helmets_view' helmet.identifier %}">
+                <div class="card bg-comman w-100">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h6>Helmets</h6>
+                                <h3>
+                                    {% if helmet %}
+                                        {{helmet.identifier}}
+                                    {% else %}
+                                        No Helmet
+                                    {% endif %}
+                                </h3>
+                            </div>
+                            <div class="db-icon">
+                                <img src="{% static 'dashboard/img/icons/helmet.png' %}" alt="Dashboard Icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            <div class="col-xl-4 col-sm-6 col-12 d-flex">
+                <div class="card bg-comman w-100">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h6>Helmet Status</h6>
+                                {% if helmet %}
+                                <h3 id="stats-status" class="badge bg-secondary">Checking...</h3>
+                                {% else %}
+                                <h3 id="stats-status" class="badge bg-secondary">No Helmet</h3>
+                                {% endif %}
+                            </div>
+                            <div class="db-icon">
+                                <img src="{% static 'dashboard/img/icons/status.png' %}" alt="Dashboard Icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-sm-6 col-12 d-flex">
+                <div class="card bg-comman w-100">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h6>Last Temperature</h6>
+                                {% if last_record_temp %}
+                                <h3><span id="last-temp">{{last_record_temp.temperature|floatformat:2}}</span> °C</h3>
+                                {% else %}
+                                <h3><span id="last-temp">N/A</span> °C</h3>
+                                {% endif %}
+
+                            </div>
+                            <div class="db-icon">
+                                <img src="{% static 'dashboard/img/icons/temps.png' %}" alt="Dashboard Icon">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if helmet %}
+        <div class="row">
+            <div class="col-0 col-lg-4">
+            </div>
+            <div class="col-12 col-lg-4">
+                <form action="{% url 'workers_send_help' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="site_id" value="{{helmet.site.id}}">
+                <input type="hidden" name="identifier" value="{{helmet.identifier}}">
+                <div class="card bg-danger w-100 card-btn" onclick="this.closest('form').submit();">
+                    <div class="card-body">
+                        <div class="db-widgets d-flex justify-content-between align-items-center">
+                            <div class="db-info">
+                                <h3 style="color: white;">PRESS TO ASK HELP!</h3>
+                            </div>
+                            <div class="db-icon" style="background-color: white;">
+                                <img src="{% static 'dashboard/img/icons/danger.png' %}" alt="Dashboard Icon" style="width: 60%;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="col-0 col-lg-4">
+            </div>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-xl-6 d-flex">
+                <div class="card flex-fill student-space comman-shadow">
+                    <div class="card-header d-flex align-items-center">
+                        <h5 class="card-title">Latest GPS Tracking</h5>
+                        <ul class="chart-list-out student-ellips">
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div id="mapchart-wrk" {% if last_record_gps %}style="height: 500px;"{% endif %}></div>
+                        {% if not last_record_gps %}
+                        <div id="map-ndt" class="alert alert-info">No data available</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 col-lg-6">
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <h5 class="card-title">Temperature Chart</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="tempchart-wrk"></div>
+                        {% if last_record_temp %}
+                        <div id="stats-last-record" class="ms-3 mb-3">
+                            Last record in {{last_record_temp.timestamp|date:"d M Y H:i:s"}}
+                        </div>
+                        {% else %}
+                        <div id="stats-last-record" class="ms-3 mb-3">
+                            No data available
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block javascript %}
+
+<script>
+    if (notif_socket) {
+        notif_socket.addEventListener('message', function (e) {
+            let data = JSON.parse(e.data);
+            dash_noti_table = document.getElementById('dash_urn');
+            let count = dash_noti_table.getElementsByClassName('activity-awards').length;
+            let elmt = `
+                <div class="activity-awards ${
+                    count == 0 ? 'mb-0' : ''
+                }">
+                    <div class="award-boxs">
+                        <img src="{% static 'dashboard/img/icons/worker.png' %}" alt="Award">
+                    </div>
+                    <div class="award-list-outs">
+                        <h4>${data.message}</h4>
+                        <h5>${data.helmet_user_fullname} in ${data.helmet_site_name}</h5>
+                    </div>
+                    <div class="award-time-list">
+                        <span class="d-block">${moment(data.timestamp, "DD-MM-YYYY HH:mm:ss").fromNow()}</span>
+                        <a class="btn btn-info py-1 mt-3 mb-4 mb-md-0 w-100 float-end" style="color: white; background-color: #3e5ee1; font-weight: 500; font-size: 0.8rem;" href="{% url 'workers' %}?name=${data.helmet_user_fullname.replace('#', "%23")}&site=${data.helmet_site_id}">View</a>
+                    </div>
+                </div>
+            `
+            // get select value of select named urn_site_id
+            let urn_site_id = document.getElementsByName('urn_site_id')[0].value;
+            let anctr = document.getElementById('anctr');
+            let graph_pct = $(document).find('#graph-pct');
+            let rnctr_int = parseInt(document.getElementById('rnctr').innerHTML);
+            if (urn_site_id == 'all' || urn_site_id == data.helmet_site_id) {
+                if (count == 0) {
+                    dash_noti_table.innerHTML = elmt;
+                } else {
+                    dash_noti_table.innerHTML = elmt + dash_noti_table.innerHTML;
+                }
+                anctr.innerHTML = parseInt(anctr.innerHTML) + 1;
+                // graph_pct.setAttribute('data-percent', `${(rnctr_int / parseInt(anctr.innerHTML)) * 100}`);
+                let next_data_percent = (rnctr_int / parseInt(anctr.innerHTML)) * 100;
+                // change data-percent attribute of graph_pct
+                graph_pct.attr('data-percent', next_data_percent);
+                graph_pct.circleProgress({
+                    value: next_data_percent / 100,
+                    size: 400,
+                    thickness: 30,
+                    fill: {
+                        color: '#6e6bfa'
+                    }
+                });
+            }
+        })
+    }
+</script>
+
+{% if user.role == "WRK" %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+</script>
+<script
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyACEbcLEk2CbHyjuJPuKqCPfBboHtG6XRQ&callback=drawMap&v=weekly"
+defer
+></script>
+{% endif %}
+{% endblock javascript %}

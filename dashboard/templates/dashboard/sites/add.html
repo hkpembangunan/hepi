@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load dashboard_extras %}
+
+
+{% block navbar %}
+    {% with nav_header_displayed=True %}
+        {{block.super}}
+    {% endwith %}
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Add Site' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Add Site' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        {% with formerrors=formerrors %}
+            {% include 'dashboard/components/dismissible-form-errors.html' %}
+        {% endwith %}
+        <div class="row">
+            <div class="col-xl-12">
+                <form method="POST">
+                    {% if request.GET.redirect_to %}
+                        <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                    {% endif %}
+                    {% csrf_token %}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="bank-inner-details">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-form-label">Site Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="name" class="form-control" placeholder="Enter site name here" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-form-label">Site PIC<span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" name="pic" required>
+                                                {% for pic in pics %}
+                                                    <option value="{{pic.id}}">{{pic.first_name}} {{pic.last_name}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-form-label">Site Project <span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" name="project" required>
+                                                {% for project in projects %}
+                                                    <option value="{{project.id}}" {% if project.id == request.GET.project_id|to_int %} selected{% endif %}>{{project.name}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-form-label">Start Date <span class="text-danger">*</span></label>
+                                            <input type="date" name="start_date" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label class="col-form-label">Expected End Date <span class="text-danger">*</span></label>
+                                            <input type="date" name="expected_end_date" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="col-form-label">Site Description <span class="text-danger"></span></label>
+                                            <textarea class="form-control" name="description" rows="4" placeholder="Enter site description here"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class=" blog-categories-btn pt-0 row">
+                            <div class="bank-details-btn col-lg-3 col-md-12">
+                                <button class="btn bank-cancel-btn me-2 w-100" type="submit">Add Site</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

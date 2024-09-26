@@ -1,0 +1,7 @@
+/* static/css/admin.css */
+#site-logo {
+    background-image: url('/static/path/to/your/logo.png'); /* Ganti dengan path logo Anda */
+    background-size: contain;
+    width: 100%; /* Atur lebar sesuai kebutuhan */
+    height: 50px; /* Atur tinggi sesuai kebutuhan */
+}

@@ -1,0 +1,114 @@
+{% load static %}
+{% load dashboard_extras %}
+<div class="header">
+    <div class="header-left">
+        <a href="{% url 'dashboard' %}" class="logo">
+            <img src="{% static 'dashboard/img/logosn.png' %}" />
+        </a>
+        <a href="{% url 'dashboard' %}" class="logo logo-small">
+            <img src="{% static 'dashboard/img/logosn.png' %}" />
+        </a>
+    </div>
+    <div class="menu-toggle">
+        <a href="javascript:void(0);" id="toggle_btn">
+            <i class="fas fa-bars"></i>
+        </a>
+    </div>
+
+    {% comment %} <div class="top-nav-search">
+        <form>
+            <input type="text" class="form-control" placeholder="Search here">
+            <button class="btn" type="submit"><i class="fas fa-search"></i></button>
+        </form>
+    </div> {% endcomment %}
+    <a class="mobile_btn" id="mobile_btn">
+        <i class="fas fa-bars"></i>
+    </a>
+
+    <ul class="nav user-menu">
+        {% is_left_role_higher_than_or_equal user.role "PIC" as htpic%}
+        {% if htpic %}
+        <li class="nav-item dropdown noti-dropdown me-2">
+            {% get_helmet_notifications False user_id=user.id is_ascending=False as header_noti %}
+            <a href="#" class="dropdown-toggle nav-link header-nav-list" data-bs-toggle="dropdown">
+                {% comment %} <img src="{% static 'dashboard/img/icons/header-icon-05.svg' %}" alt=""> {% endcomment %}
+                <img style="width: 60%; height: 60%;" src="https://img.icons8.com/ios/50/safety-hat.png" alt="safety-hat"/>
+                {% comment %} <i class="fas fa-helmet-safety"></i> {% endcomment %}
+                <div class="badge badge-pill noti {% if header_noti|length <= 0 %}d-none{% endif %}" id="header-noti-counter"
+                    style="background-color: #ff0000; color: #fff; position: absolute; top: 0; right: 0; width: fit-content; min-width: 15px;">
+                    {{header_noti|length}}
+                </div>
+            </a>
+            <div class="dropdown-menu notifications">
+                <div class="topnav-dropdown-header">
+                    <span class="notification-title">Unresolved Helmet Notifications</span>
+                </div>
+                <div class="noti-content">
+                    <ul class="notification-list">
+                        {% for notif in header_noti %}
+                        <li class="notification-message">
+                            <a href="{% url 'workers' %}?site_id={{notif.helmet_site_id}}&name={{notif.helmet_user_fullname}}">
+                                <div class="media d-flex">
+                                    <div class="media-body flex-grow-1">
+                                        <p class="noti-details"><span class="noti-title">{{notif.helmet_user_fullname}} ({{notif.helmet_identifier}}): <b>{{notif.message}}</b></span>
+                                        </p>
+                                        <p class="noti-time"><span class="notification-time">{{notif.timestamp}}</span> <span class="notification-time" id="notif-{{notif.id}}-ts">{{notif.timestamp}}</span>
+                                        </p>
+                                        <script>
+                                            if (true) {
+                                                let ts = document.getElementById('notif-{{notif.id}}-ts');
+                                                ts.innerHTML = moment(ts.innerHTML, "DD-MM-YYYY HH:mm:ss").fromNow();
+                                            }
+                                        </script>
+                                    </div>
+                                </div>
+                            </a>  
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="topnav-dropdown-footer">
+                    <a href="{% url 'workers_notifications' %}">View Unresolved Helmets Notifications</a>
+                </div>
+            </div>
+        </li>
+        {% endif %}
+        <li class="nav-item zoom-screen me-2">
+            <a href="#" class="nav-link header-nav-list win-maximize">
+                <img src="{% static 'dashboard/img/icons/header-icon-04.svg' %}" alt="">
+            </a>
+        </li>
+
+        <li class="nav-item dropdown has-arrow new-user-menus">
+            <a href="#" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
+                <span class="user-img">
+                    <img src="https://placehold.co/100x100" alt="User Image"
+                        class="avatar-img rounded-circle">
+                    <div class="user-text">
+                        <h6>{{user.first_name}} {{user.last_name}}</h6>
+                        <p class="text-muted mb-0">{{user.get_role_display}}</p>
+                    </div>
+                </span>
+            </a>
+            <div class="dropdown-menu">
+                <div class="user-header">
+                    <div class="avatar avatar-sm">
+                        <img src="https://placehold.co/100x100" alt="User Image"
+                            class="avatar-img rounded-circle">
+                    </div>
+                    <div class="user-text">
+                        <h6>{{user.first_name}} {{user.last_name}}</h6>
+                        <p class="text-muted mb-0">{{user.get_role_display}}</p>
+                    </div>
+                </div>
+                <a class="dropdown-item" href="{% url 'profile_view' user.id %}">My Profile</a>
+                <form id="logout-form" action="{% url 'logout' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item">Logout</button>
+                </form>
+            </div>
+        </li>
+
+    </ul>
+
+</div>

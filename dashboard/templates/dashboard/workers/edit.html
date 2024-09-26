@@ -1,0 +1,162 @@
+
+{% extends 'base.html' %}
+{% load static %}
+{% load dashboard_extras %}
+
+{% block navbar %}
+   {% with nav_header_displayed=True  %}
+    {{block.super}}
+   {% endwith %} 
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Edit Workers' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Workers' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        {% with formerrors=formerrors %}
+            {% include 'dashboard/components/dismissible-form-errors.html' %}
+        {% endwith %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Worker Informations</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            {% if request.GET.redirect_to %}
+                                <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                            {% endif %}
+                            <div class="bank-inner-details">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-12"> 
+                                        <div class="form-group">
+                                            <label>Worker Email <span class="text-danger">*</span></label>
+                                            <input type="email" name="email" class="form-control" placeholder="Enter email here" required value="{{worker.email}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker First Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="first_name" class="form-control" placeholder="Enter first name here" required value="{{worker.first_name}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker Last Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="last_name" class="form-control" placeholder="Enter last name name here" required value="{{worker.last_name}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker Site <span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" name="site" required>
+                                                <option value="unassigned">Unassigned</option>
+                                                {% for sites_in_project in sites|select_group_by:"project.name"%}
+                                                    <optgroup label="{{sites_in_project.0.project.name|to_title}}">
+                                                        {% for site in sites_in_project%}
+                                                            <option value="{{site.id}}" {% if worker.site.id == site.id %}selected{% endif %}>{{site.name|to_title}}</option>
+                                                        {% endfor %}
+                                                    </optgroup>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker Helmet <span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" name="helmet" required>
+                                                <option value="unassigned">Unassigned</option>
+                                                {% for helmet in helmets %}
+                                                    {% if helmet.site == worker.site %}
+                                                    <option value="{{helmet.id}}" {% if worker.helmet.id == helmet.id %}selected{% endif %}>{{helmet.name|to_title}} <b>({{helmet.identifier}})</b></option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Date Joined <span class="text-danger">*</span></label>
+                                            <input type="date" name="date_joined" class="form-control" placeholder="Enter date joined here" required value="{{worker.date_joined|date:"Y-m-d"}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Role <span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" required disabled>
+                                                <option value="{{worker_role.value}}">{{worker_role.name|to_title}}</option>
+                                            </select>
+                                            <input type="hidden" name="role" value="{{worker_role.value}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Department <span class="text-danger">*</span></label>
+                                            <input type="text" name="department" class="form-control" placeholder="Enter department name here" required value="{{worker.department}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Phone <span class="text-danger">*</span></label>
+                                            <input type="text" name="phone" class="form-control" placeholder="Enter phone number here" required value="{{worker.phone}}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="blog-categories-btn px-0 row"> 
+                                <div class="bank-details-btn col-lg-3 col-md-12">
+                                    <a href="{% url 'workers_change_password' worker.id %}?redirect_to={{request.GET.redirect_to}}" class="btn me-2 w-100 btn-danger">Change Password</a>
+                                </div>
+                                <div class="bank-details-btn col-lg-6 col-md-12 my-2">
+                                </div>
+                                <div class="bank-details-btn col-lg-3 col-md-12">
+                                    <button class="btn bank-cancel-btn me-2 w-100" type="submit">Save Changes</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block javascript %}
+
+<script>
+
+$(document).ready(function(){
+    var helmets = {{helmets|jsonify}}
+    var helmet_select = $("select[name='helmet']");
+    var site_select = $("select[name='site']");
+    site_select.on("change", function() {
+        console.log("change");
+        var site_id = $(this).val();
+        helmet_select.empty();
+        helmet_select.append("<option value='unassigned'>Unassigned</option>");
+        for (var i = 0; i < helmets.length; i++) {
+            if (helmets[i].site_id == site_id) {
+                if (helmets[i].id == {{worker.helmet.id|nullify}}) {
+                    helmet_select.append("<option value='"+helmets[i].id+"' selected>"+helmets[i].name+"</option>");
+                } else {
+                    helmet_select.append("<option value='"+helmets[i].id+"'>"+helmets[i].name+"</option>");
+                }
+            }
+        }
+    })
+});
+
+</script>
+
+{% endblock javascript %}

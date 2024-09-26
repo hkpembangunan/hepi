@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load dashboard_extras %}
+
+
+{% block navbar %}
+    {% with nav_header_displayed=True %}
+        {{block.super}}
+    {% endwith %}
+{% endblock navbar %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Helmet List' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Helmets' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        {% with helmets=helmets title='All Helmets' view_only=False %}
+            {% include 'dashboard/components/helmet-table.html' %}
+        {% endwith %} 
+    </div>
+</div>
+{% endblock content %}

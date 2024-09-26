@@ -1,0 +1,33 @@
+.del-btn:hover {
+    color: #fff !important;
+    background-color: #ff4444 !important;
+    border-color: #ff4444 !important;
+}
+.btn-danger  {
+    background-color: #ff0000 !important;
+    color: white !important;
+    border: 1px solid #ff0000 !important;
+}
+
+.btn-danger:hover {
+    background-color: #dd0000 !important;
+}
+
+
+.tbl-btn-success {
+    color: #00C851 !important;
+    font-weight: 900 !important;
+}
+.tbl-btn-success:hover {
+    background-color: #00C851 !important;
+    border-color: #00C851 !important;
+    color: #fff !important;
+}
+
+::-ms-reveal {
+    display: none;
+}
+
+.personal-icons {
+    width: 20px !important;
+}

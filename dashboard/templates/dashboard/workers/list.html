@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load dashboard_extras %}
+
+{% block css %}
+<style>
+    .helm-status {
+        float: right;
+        padding-top: 0;
+        padding-bottom: 0;
+        cursor: default !important;
+    }
+    .worker-name {
+        float: left;
+        display: inline-block;
+    }
+    .btn-success {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+    .mark-as-done {
+        cursor: pointer;
+    }
+    .mark-as-done:hover {
+        opacity: 0.8;
+        text-decoration-color: transparent;
+    }
+    .worker-noti:empty {
+        display: none;
+    }
+    .feed {
+        margin: 10px 0;
+    }
+    .gps-badge {
+        margin-left: 5px;
+    }
+    .iframe-container {
+        width: 100%;
+    }
+    .iframe-container .last-updated {
+        margin-top: 5px;
+    }
+</style>
+{% endblock css %}
+
+{% block navbar %}
+   {% with nav_header_displayed=True  %}
+    {{block.super}}
+   {% endwith %} 
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Workers List' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Workers' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        <form method="GET">
+            <div class="form-group row" style="row-gap: 10px;">
+                <label class="col-form-label col-1">Site</label>
+                <div class="col-lg-5 col-md-12">
+                    <select style="display: inline-block;" class="form-control searchable" name="site_id" onchange="
+                        this.form.submit();
+                    ">
+                        <option value="all" {% if request.GET.site_id == 'all' %}selected{% endif %}>All</option>
+                        <option value="unassigned" {% if request.GET.site_id == 'unassigned' %}selected{% endif %}>Unassigned</option>
+                        {% for sites_in_project in sites|select_group_by:"project.name"%}
+                            <optgroup label="{{sites_in_project.0.project.name|to_title}}">
+                                {% for site in sites_in_project%}
+                                    <option value="{{site.id}}" {% if request.GET.site_id == site.id|to_string %}selected{% endif %}>{{site.name|to_title}}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-5 col-md-12">
+                    <input type="text" class="form-control" name="name" placeholder="Search name..." value="{{request.GET.name}}">
+                </div>
+                <div class="col-lg-1 col-md-12">
+                    {% if not view_only %}
+                    <a href="{% url 'workers_add' %}{% if request.GET.site_id %}?site_id={{request.GET.site_id}}{% endif %}{% if request.GET.site_id %}&{% else %}?{% endif %}redirect_to={{request.get_full_path|str_b64}}"
+                        class="btn btn-primary float-end"><i class="fas fa-plus"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+        <div class="row">
+            {% if workers %}
+            {% for worker in workers %}
+            <div class="col-12 col-md-6 col-lg-4 d-flex" style="height: fit-content; max-width: 600px;">
+                <div class="card flex-fill bg-white">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0 worker-name">{{worker.first_name|to_title}} {{worker.last_name|to_title}}</h5>
+                        <button type="button" class="btn btn-secondary helm-status" id="{{worker.helmet.identifier}}-online">Loading...</button>
+                    </div>
+                    <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% if worker.helmet %}
+                        <div class="list-group-item worker-noti" id="{{worker.helmet.identifier}}-notification">{% spaceless %}
+                            {% get_helmet_notifications False user_id=worker.id site_id=worker.site.id as helm_notifications %}
+                            {% for helm_notif in helm_notifications %}
+                                <div class="alert alert-danger my-2 d-flex" role="alert" style="justify-content: space-between; align-items: stretch;">
+                                    <div>
+                                        <span class="d-inline-block fw-bold">{{helm_notif.message}}</span>
+                                        <div style="font-size: 0.8rem;" id="{{helm_notif.helmet_identifier}}-noti-{{helm_notif.id}}" 
+                                        >{{helm_notif.timestamp}}</div>
+                                    </div>
+                                    <div class="mark-as-done d-flex" style="align-items: center;">
+                                        <form action="{% url 'helmets_notification_done' %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="helmet_notif_id" value="{{helm_notif.id}}">
+                                            <input type="hidden" name="redirect_to" value="{{request.get_full_path|str_b64}}">
+                                            <button class="btn btn-success warn-action" type="submit">Clear <i class="fas fa-check ms-2"></i></button>
+                                        </form>
+                                    </div>
+                                    <script>
+                                        if (true) {
+                                            let div_nt = document.getElementById('{{helm_notif.helmet_identifier}}-noti-{{helm_notif.id}}');
+                                            let original_date = div_nt.innerHTML;
+                                            div_nt.innerHTML = moment(original_date, 'DD-MM-YYYY HH:mm:ss').fromNow();
+                                        }
+                                    </script> 
+                                </div>
+                            {% endfor %}
+                            {% endspaceless %}</div>
+                        {% get_last_record_by_worker worker.id temperature=True as last_record_temp %}
+                        {% get_last_record_by_worker worker.id position=True as last_record_gps %}
+                        <li class="list-group-item">
+                            <div>
+                                GPS <span id="{{worker.helmet.identifier}}-gps-status" class="gps-badge badge bg-secondary">Loading...</span>
+                            </div>
+                            <div class="gps feed" id="{{worker.helmet.identifier}}-gps-feed">
+                                <div class="feed-error">
+                                    {% if not last_record_gps %}
+                                    <div class="alert alert-danger" role="alert">
+                                        <i class="fas fa-exclamation-triangle"></i> No Data
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="iframe-container {% if not last_record_gps %}d-none{% endif %}">
+                                    <iframe
+                                    width="100%"
+                                    style="border:0; display: block; aspect-ratio: 1 / 1;"
+                                    loading="lazy"
+                                    allowfullscreen
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="https://www.google.com/maps/embed/v1/place?key=AIzaSyACEbcLEk2CbHyjuJPuKqCPfBboHtG6XRQ&q={{last_record_gps.latitude}},{{last_record_gps.longitude}}"
+                                    >
+                                    </iframe>
+                                    <div class="last-updated">
+                                        Last Updated: <span id="{{worker.helmet.identifier}}-gps-last-updated">{% if last_record_gps %}{{last_record_gps.timestamp|date:"d-m-Y H:i:s"}}{% endif %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div>
+                                Camera
+                            </div>
+                            <div class="cam feed" id="{{worker.helmet.identifier}}-cam-feed">
+                                <div class="feed-error">
+                                    <div class="alert alert-danger" role="alert">
+                                        <i class="fas fa-exclamation-triangle"></i> Camera Offline
+                                    </div>
+                                </div>
+                                <img src="https://placehold.co/100x100" class="d-none feed-container" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover;"></img>
+                            </div>
+                        </li>
+                        {% endif %}
+                        <li class="list-group-item">Site<h6>
+                            {% if worker.site %}
+                                {{worker.site.name|title}}
+                            {% else %}
+                                <span class="text-danger">Not Assigned</span>
+                            {% endif %}
+                        </h6></li>
+                        <li class="list-group-item">Helmet<h6>
+                            {% if worker.helmet %}
+                                {{worker.helmet.name|title}} ({{worker.helmet.identifier|upper}})
+                            {% else %}
+                                <span class="text-danger">Not Assigned</span>
+                            {% endif %}
+
+                        </h6></li>
+                        <li class="list-group-item">Live Temperature<h6 id="{{worker.helmet.identifier}}-temperature" class="text-muted helm-temperature">Loading...</h6></li>
+                    </ul>
+                    </div>
+                    <div class="card-footer text-muted px-3">
+                        <div class="d-flex flex-wrap flex-end justify-content-between" style="column-gap: 10px;">
+                            <div class="col-auto flex-grow-1 mt-2">
+                                <a href="{% url 'profile_view' worker.id %}" class="btn btn-secondary w-100">Details</a>
+                            </div>
+                            <div style="flex-basis: 100%; height: 0;"></div>
+                            <div class="col-auto flex-grow-1 mt-2">
+                                <a href="{% url 'workers_edit' worker.id %}?redirect_to={{request.get_full_path|str_b64}}" class="btn btn-primary w-100">Edit</a>
+                            </div>
+                            <div class="col-auto flex-grow-1 mt-2">
+                                <form action="{% url 'workers_delete' %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="worker_id" value="{{worker.id}}">
+                                    <input type="hidden" name="redirect_to" value="{{request.get_full_path|str_b64}}">
+                                    <button class="btn btn-danger w-100 warn-action" type="submit">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    <strong>Info!</strong> No workers found.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+{% endblock javascript %}

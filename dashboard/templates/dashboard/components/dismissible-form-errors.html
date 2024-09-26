@@ -1,0 +1,12 @@
+{% if formerrors %}
+    {% for field, errors in formerrors.items %}
+        {% for error in errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <b>{{field}}</b>: {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endif %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load dashboard_extras %}
+
+{% block navbar %}
+   {% with nav_header_displayed=True  %}
+    {{block.super}}
+   {% endwith %} 
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Edit Profile' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Profile' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        {% with formerrors=formerrors %}
+            {% include 'dashboard/components/dismissible-form-errors.html' %}
+        {% endwith %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Profile Informations</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            {% if request.GET.redirect_to %}
+                                <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                            {% endif %}
+                            <div class="bank-inner-details">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-12"> 
+                                        <div class="form-group">
+                                            <label>Email <span class="text-danger">*</span></label>
+                                            <input type="email" name="email" class="form-control" placeholder="Enter email here" required value="{{userinfo.email}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-12">
+                                        <div class="form-group">
+                                            <label>First Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="first_name" class="form-control" placeholder="Enter first name here" required value="{{userinfo.first_name}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-12">
+                                        <div class="form-group">
+                                            <label>Last Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="last_name" class="form-control" placeholder="Enter last name name here" required value="{{userinfo.last_name}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Date Joined <span class="text-danger">*</span></label>
+                                            <input type="date" name="date_joined" class="form-control" placeholder="Enter date joined here" required value="{{userinfo.date_joined|date:'Y-m-d'}}" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Role <span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" required disabled>
+                                                <option value="">{{userinfo.role.name}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Department <span class="text-danger">*</span></label>
+                                            {% if not is_admin %}
+                                                <input type="text" name="department" class="form-control" placeholder="Enter department name here" required value="{{userinfo.department}}" {% if not is_admin %}disabled{% endif %}>
+                                                <input type="hidden" name="department" value="{{userinfo.department}}">
+                                            {% else %}
+                                                <input type="text" name="department" class="form-control" placeholder="Enter department name here" required value="{{userinfo.department}}">
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Phone <span class="text-danger">*</span></label>
+                                            <input type="text" name="phone" class="form-control" placeholder="Enter phone number here" required value="{{userinfo.phone}}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="blog-categories-btn px-0 row"> 
+                                <div class="bank-details-btn col-lg-3 col-md-12">
+                                    <a href="{% url 'profile_change_password' userinfo.id %}" class="btn me-2 w-100 btn-danger">Change Password</a>
+                                </div>
+                                <div class="bank-details-btn col-lg-6 col-md-12 my-2">
+                                </div>
+                                <div class="bank-details-btn col-lg-3 col-md-12">
+                                    <button class="btn bank-cancel-btn me-2 w-100" type="submit">Save Changes</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

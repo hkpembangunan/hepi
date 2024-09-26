@@ -1,0 +1,145 @@
+{% load dashboard_extras %}
+<div class="card card-table comman-shadow" id="project_table">
+    <div class="card-body">
+        <div class="page-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h3 class="page-title">
+                        {% if title %}
+                            {{title}}
+                        {% else %}
+                            Projects
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="col-auto text-end float-end ms-auto download-grp">
+                    {% comment %} <a href="students.html" class="btn btn-outline-gray me-2 active"><i
+                            class="feather-list"></i></a>
+                    <a href="students-grid.html" class="btn btn-outline-gray me-2"><i
+                            class="feather-grid"></i></a>
+                    <a href="#" class="btn btn-outline-primary me-2"><i
+                            class="fas fa-download"></i> Download</a> {% endcomment %}
+                    {% if user.role == "ADM" %}
+                    <a href="{% url 'projects_add' %}?redirect_to={{request.get_full_path|addstr:"#project_table"|str_b64}}" class="btn btn-primary"><i
+                            class="fas fa-plus"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive row">
+            <table id="project-table"
+                class="table border-0 star-student table-hover table-center mb-0 datatables table-striped">
+                <thead class="student-thread">
+                    <tr class="enable-search">
+                        <th>Name</th>
+                        <th>Director</th>
+                        <th>Status</th>
+                        <th>Sites</th>
+                        {% if not view_only %}
+                        <th class="no-search">Action</th>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        {% comment %} <th>
+                            <div class="form-check check-tables">
+                                <input class="form-check-input" type="checkbox"
+                                    value="something">
+                            </div>
+                        </th> {% endcomment %}
+                        <th>Name</th>
+                        <th>Director</th>
+                        <th>Status</th>
+                        <th>Sites</th>
+                        {% if not view_only %}
+                        <th class="text-end">Action</th>
+                        {% endif %}
+                    </tr>
+
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                        <tr>
+                            {% comment %} <td>
+                                <div class="form-check check-tables">
+                                    <input class="form-check-input" type="checkbox"
+                                        value="something">
+                                </div>
+                            </td> {% endcomment %}
+                            <td>
+                                <a href="{% url 'projects_view' project.id %}">
+                                    {{project.name}}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'profile_view' project.director.id %}">{{project.director.first_name}} {{project.director.last_name}}</a>
+                            </td>
+                            <td>
+                                {% count_days start_date=project.start_date end_date="now" as count_days %}
+                                {% if count_days >= 0 %}
+                                    {% if project.actual_end_date %}
+                                        <span class="badge bg-success">Finished</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Ongoing</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-danger">Not Started</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if project.sites.all %}
+                                    {% for site in project.sites.all %}
+                                        {% if site.id == project.sites.last.id %}
+                                            <a href="{% url 'sites_view' site.id %}">{{site.name}}</a>
+                                        {% else %}
+                                            <a href="{% url 'sites_view' site.id %}">{{site.name}}</a>,
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-danger">No site available</span>
+                                {% endif %}
+                            </td>
+                            {% if not view_only %}
+                            <td class="text-end">
+                                <div class="actions ">
+                                    <a href="{% url 'projects_view' project.id %}"
+                                        class="btn btn-sm bg-success-light me-2">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if not project.actual_end_date %}
+                                        <a href="{% url 'projects_edit' project.id %}" class="btn btn-sm bg-success-light me-2">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                        {% if count_days >= 0 %}
+                                        <form action="{% url 'projects_finish' %}" class="d-inline" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="project_id" value="{{project.id}}">
+                                            <input type="hidden" name="redirect_to" value="{{request.get_full_path|addstr:'#site_table'|str_b64}}">
+                                            <button type="submit" class="btn btn-sm bg-success-light tbl-btn-success warn-action me-2">
+                                                <i class="fas fa-flag-checkered"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if user.role == "ADM" %}
+                                    <form method="POST" action="{% url 'projects_delete'%}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="project_id"
+                                            value="{{project.id}}">
+                                        <input type="hidden" name="redirect_to" value="{{request.get_full_path|addstr:"#project_table"|str_b64}}">
+                                        <button type="submit"
+                                            class="btn btn-sm bg-danger-light del-btn warn-action">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

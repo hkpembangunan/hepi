@@ -1,0 +1,109 @@
+{% load dashboard_extras %}
+<div class="card card-table comman-shadow" id="worker_table">
+    <div class="card-body">
+        <div class="page-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h3 class="page-title">
+                        {% if title %}
+                            {{title}}
+                        {% else %}
+                            Workers
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="col-auto text-end float-end ms-auto download-grp">
+                    {% comment %} <a href="students.html" class="btn btn-outline-gray me-2 active"><i
+                            class="feather-list"></i></a>
+                    <a href="students-grid.html" class="btn btn-outline-gray me-2"><i
+                            class="feather-grid"></i></a>
+                    <a href="#" class="btn btn-outline-primary me-2"><i
+                            class="fas fa-download"></i> Download</a> {% endcomment %}
+                    {% if not view_only %}
+                    <a href="{% url 'workers_add' %}{% if site_id %}?site_id={{site_id}}{% endif %}{% if site_id %}&{% else %}?{% endif %}redirect_to={{request.get_full_path|addstr:'#worker_table'|str_b64}}"
+                        class="btn btn-primary"><i class="fas fa-plus"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive row">
+            <table
+                class="table border-0 star-student table-hover table-center mb-0 datatables table-striped">
+                <thead class="student-thread">
+                    <tr class="enable-search">
+                        <th>Name</th>
+                        <th>Email</th>
+                        {% if not site.actual_end_date %}
+                        <th>Helmet</th>
+                        {% endif %}
+                        {% if not view_only %}
+                        <th class="no-search">Action</th>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        {% comment %} <th>
+                            <div class="form-check check-tables">
+                                <input class="form-check-input" type="checkbox"
+                                    value="something">
+                            </div>
+                        </th> {% endcomment %}
+                        <th>Name</th>
+                        <th>Email</th>
+                        {% if not site.actual_end_date %}
+                        <th>Helmet</th>
+                        {% endif %}
+                        {% if not view_only %}
+                        <th class="text-end">Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for worker in workers %}
+                        <tr>
+                            {% comment %} <td>
+                                <div class="form-check check-tables">
+                                    <input class="form-check-input" type="checkbox"
+                                        value="something">
+                                </div>
+                            </td> {% endcomment %}
+                            <td><a href="{% url 'profile_view' worker.id %}">{{worker.first_name|title}} {{worker.last_name|title}}</a></td>
+                            </td>
+                            <td>
+                                {{worker.email}}
+                            </td>
+                            {% if not site.actual_end_date %}
+                            <td>{% if worker.helmet %}
+                                    {{worker.helmet.name|title}} <b>({{worker.helmet.identifier|upper}})</b>
+                                {% else %}
+                                    <span class="text-danger">Not Assigned</span>
+                                {% endif %}</td>
+                            {% endif %}
+                            {% if not view_only %}
+                            <td class="text-end">
+                                <div class="actions ">
+                                    <a href="{% url 'profile_view' worker.id %}"
+                                        class="btn btn-sm bg-success-light me-2 ">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'workers_edit' worker.id %}" class="btn btn-sm bg-success-light me-2">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form action="{% url 'workers_delete' %}" method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="worker_id" value="{{worker.id}}">
+                                        <input type="hidden" name="redirect_to" value="{{request.get_full_path|addstr:'#worker_table'|str_b64}}">
+                                        <button type="submit" class="btn btn-sm bg-danger-light del-btn warn-action">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

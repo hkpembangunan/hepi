@@ -1,0 +1,108 @@
+{% load dashboard_extras %}
+<div class="card card-table comman-shadow" id="notif_table">
+    <div class="card-body">
+        <div class="page-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h3 class="page-title">
+                        {% if title %}
+                            {{title}}
+                        {% else %}
+                            Helmets
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="col-auto text-end float-end ms-auto download-grp">
+                    {% comment %} <a href="students.html" class="btn btn-outline-gray me-2 active"><i
+                            class="feather-list"></i></a>
+                    <a href="students-grid.html" class="btn btn-outline-gray me-2"><i
+                            class="feather-grid"></i></a>
+                    <a href="#" class="btn btn-outline-primary me-2"><i
+                            class="fas fa-download"></i> Download</a> {% endcomment %}
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive row">
+            <table id="helmet-table"
+                class="table border-0 star-student table-hover table-center mb-0 datatables table-striped">
+                <thead class="student-thread">
+                    <tr class="enable-search">
+                        <th>Timestamp</th>
+                        <th>Message</th>
+                        <th>Helmet</th>
+                        <th>Worker</th>
+                        <th>Site</th>
+                        <th>Resolved At</th>
+                        {% if not view_only %}
+                        <th class="no-search">Action</th>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Message</th>
+                        <th>Helmet</th>
+                        <th>Worker</th>
+                        <th>Site</th>
+                        <th>Resolved At</th>
+                        {% if not view_only %}
+                        <th class="text-end">Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for noti in notifications %}
+                        <tr>
+                            {% comment %} <td>
+                                <div class="form-check check-tables">
+                                    <input class="form-check-input" type="checkbox"
+                                        value="something">
+                                </div>
+                            </td> {% endcomment %}
+                            <td>{{noti.timestamp|date:"d-m-Y H:i:s"}}</td>
+                            <td>
+                                <b>{{noti.message}}</b>
+                            </td>
+                            <td>
+                                {{noti.helmet.identifier|upper}}
+                            </td>
+                            <td>
+                                <b>{{noti.user.first_name|title}} {{noti.user.last_name|title}}</b>
+                            </td>
+                            <td>
+                                {{noti.site.name|title}}
+                            </td>
+                            <td>
+                                {% if not noti.resolved_at %}
+                                    <span class="badge bg-danger-bright text-danger">Not Resolved</span>
+                                {% else %}
+                                    {{noti.resolved_at|date:"d M Y, H:i "}}
+                                {% endif %}
+                            </td>
+                            {% if not view_only %}
+                            <td class="text-end">
+                                <div class="actions ">
+                                    {% if not noti.resolved_at %}
+                                    <a href="{% url 'workers' %}?name={{noti.user.first_name|title}} {{noti.user.last_name|title}}&site={{noti.site.id}}"
+                                        class="btn btn-sm bg-success-light me-2">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="POST" action="{% url 'helmets_notification_done' %}"
+                                        class="d-inline">
+                                        <input type="hidden" name="helmet_notif_id" value="{{noti.id}}">
+                                        <input type="hidden" name="redirect_to" value="{{request.path|str_b64}}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm bg-success-light tbl-btn-success warn-action"`>
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

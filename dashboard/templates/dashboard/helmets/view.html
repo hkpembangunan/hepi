@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load dashboard_extras %}
+
+{% block css %}
+<style>
+
+.del-helmet  {
+    background-color: #ff0000 !important;
+    color: white !important;
+    border: 1px solid #ff0000 !important;
+}
+
+.del-helmet:hover {
+    background-color: #dd0000 !important;
+}
+</style>
+{% endblock css %}
+
+
+{% block navbar %}
+    {% with nav_header_displayed=True %}
+        {{block.super}}
+    {% endwith %}
+{% endblock navbar %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='View Helmets' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name=name %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %} 
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="about-info">
+                            <h4>&nbsp; <span><a href="javascript:;"><i
+                                            class="fas fa-map"></i></a></span></h4>
+                        </div>
+                        <div class="student-profile-head">
+                            <div class="profile-bg-img">
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-12">
+                                    <div class="profile-user-box my-xl-0 my-3" style="float: left; margin-left: 20px; margin-right: 20px;">
+                                        <div class="profile-user-img">
+                                            <img src="https://placehold.co/400x400" alt="Profile">
+                                        </div>
+                                        <div class="names-profiles">
+                                            <h4>{{name}}</h4>
+                                            <h5>{{identifier}}</h5>
+                                            <h5>{% if user and site %}
+                                                    Used by <a href="{% url 'profile_view' user.id %}">{{user.first_name}} {{user.last_name}}</a> at <a href="{% url 'sites_view' site.id %}">{{site.name}}</a>
+                                                {% elif user %}
+                                                    Used by <a href="{% url 'profile_view' user.id %}">{{user.first_name}} {{user.last_name}}</a>
+                                                {% elif site %}
+                                                    Used at <a href="{% url 'sites_view' site.id %}">{{site.name}}</a>
+                                                {% else %}
+                                                    Not in use
+                                                {% endif %}</h5>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="col-lg-2">
+                                </div>
+                                {% comment %} <div class="col-lg-4 col-md-4 d-flex align-items-center">
+                                    <div class="follow-group">
+                                        <div class="students-follows">
+                                            <h5>Followers</h5>
+                                            <h4>2850</h4>
+                                        </div>
+                                        <div class="students-follows">
+                                            <h5>Followers</h5>
+                                            <h4>2850</h4>
+                                        </div>
+                                        <div class="students-follows">
+                                            <h5>Followers</h5>
+                                            <h4>2850</h4>
+                                        </div>
+                                    </div>
+                                </div> {% endcomment %}
+                                <div class="col-lg-4 col-md-12 d-flex align-items-center">
+                                    <div class="follow-btn-group" style="justify-content: space-around;">
+                                        {% if can_edit %}
+                                        <a href="
+                                        {% url 'helmets_edit' identifier|upper %}{% if request.GET.redirect_to %}?redirect_to={{request.GET.redirect_to}}{% endif %}
+                                        " class="btn btn-info edit-worker">Edit Helmet</a>
+                                        {% endif %}
+                                        {% if can_delete %}
+                                        <form action="{% url 'helmets_delete' %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="identifier" value="{{identifier}}">
+                                            {% if request.GET.redirect_to %}
+                                            <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                                            {% endif %}
+                                            <button type="submit" class="btn btn-info del-helmet warn-action">Delete Helmet</button>
+                                        </form>
+                                        {% endif %}
+                                    </div> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="student-personals-grp">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="heading-detail">
+                                        <h4>Helmets Details:</h4>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="far fa-address-card"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Name </h4>
+                                            <h5>{{name}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-id-card-clip"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Identifier </h4>
+                                            <h5>{{identifier}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-map"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Site</h4>
+                                            <h5>
+                                                {% if site %}
+                                                <a href="{% url 'sites_view' site.id %}">{{site.name}}</a>
+                                                {% else %}
+                                                Not in use
+                                                {% endif %}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-user"> </i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>User </h4>
+                                            <h5>
+                                                {% if user %}
+                                                <a href="{% url 'profile_view' user.id %}">{{user.first_name}} {{user.last_name}}</a>
+                                                {% else %}
+                                                Not in use
+                                                {% endif %}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="student-personals-grp">
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="heading-detail">
+                                        <h4>Metrics</h4>
+                                    </div>
+                                    <div class="status mb-3">
+                                        <div id="stats-status" class="badge bg-secondary ms-2" style="font-size: 1.2rem;">Checking...</div>
+                                        {% if last_record %}
+                                        <div class="ms-2 mt-2" id="stats-last-record" style="display: block;">Last record in {{last_record.timestamp|date:"Y-m-d H:i:s"}} from <a href="{% url 'profile_view' last_record.user.id %}">{{last_record.user.first_name|title}} {{last_record.user.last_name|title}}</a></div>
+                                        {% else %}
+                                        <div class="ms-2 mt-2" id="stats-last-record" style="display: block;">No data available</div>
+                                        {% endif %}
+                                    </div>
+                                    <div id="tempchart-wrk" class="mb-3"></div>
+                                    <h5 class="mb-3">Latest GPS Position</h5>
+                                    <div id="mapchart-wrk" {% if last_record_gps %}style="height: 500px;"{% endif %}></div>
+                                    {% if not last_record_gps %}
+                                    <div id="map-ndt" class="alert alert-info">No data available</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+</script>
+<script
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyACEbcLEk2CbHyjuJPuKqCPfBboHtG6XRQ&callback=drawMap&v=weekly"
+defer
+></script>
+
+{% endblock javascript %}

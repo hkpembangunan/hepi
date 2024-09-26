@@ -1,0 +1,151 @@
+
+{% extends 'base.html' %}
+
+{% load static %}
+{% load dashboard_extras %}
+
+
+{% block navbar %}
+    {% with nav_header_displayed=True %}
+        {{block.super}}
+    {% endwith %}
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Add Helmet' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Add Helmet' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        {% with formerrors=formerrors %}
+            {% include 'dashboard/components/dismissible-form-errors.html' %}
+        {% endwith %}
+        <div class="row">
+            <div class="col-xl-12">
+                <form method="POST">
+                    {% if request.GET.redirect_to %}
+                        <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                    {% endif %}
+                    {% csrf_token %}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="bank-inner-details">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Helmet Identifier <span class="text-danger">*</span></label>
+                                            <input type="text" name="identifier" class="form-control" placeholder="Enter helmet identifier here" required id="identifier_field">
+                                            <ul class="mt-2">
+                                                <li class="text-danger" id="contain_alphanumeric_and_dash"><i class="fas fa-xmark ms-1 me-2"></i> Only alphanumeric and dash "-" are allowed </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Helmet Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="name" class="form-control" placeholder="Enter helmet name here" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Helmet Site <span class="text-danger">*</span></label>
+                                            <select name="site" class="form-control searchable" required id="site_select">
+                                                <option value="unassigned">Unassigned</option>
+                                                {% for sites_in_project in sites|select_group_by:"project"%}
+                                                    <optgroup label="{{sites_in_project.0.project.name}}">
+                                                        {% for site in sites_in_project %}
+                                                            <option value="{{site.id}}">{{site.name}}</option>
+                                                        {% endfor %}
+                                                    </optgroup>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>    
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Helmet User <span class="text-danger">*</span></label>
+                                            <select name="user" class="form-control searchable" required id="worker_select">
+                                                <option value="unassigned">Unassigned</option>
+                                                {% for worker_in_site in workers|select_group_by:"site.id" %}
+                                                    <optgroup label="{% if worker_in_site.0.site %}{{worker_in_site.0.site.name}}{% else %}Unassigned{% endif %}">
+                                                        {% for worker in worker_in_site %}
+                                                            <option value="{{worker.id}}">{{worker.first_name}} {{worker.last_name}}</option>
+                                                        {% endfor %}
+                                                    </optgroup>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class=" blog-categories-btn row p-0 w-100 my-2 mx-0">
+                                <div class="bank-details-btn col-lg-3 col-md-12 p-0">
+                                    <button class="btn bank-cancel-btn me-2 w-100" type="submit">Add Helmet</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+    $('#identifier_field').on('keyup', function() {
+        // if the identifier only contains alphanumeric and dash
+        if (/^[a-zA-Z0-9-]*$/.test(this.value) && this.value.length > 0) {
+            $('#contain_alphanumeric_and_dash').removeClass('text-danger').addClass('text-success').html('<i class="fas fa-check ms-1 me-2"></i> Only alphanumeric and dash "-" are allowed');
+        } else {
+            $('#contain_alphanumeric_and_dash').removeClass('text-success').addClass('text-danger').html('<i class="fas fa-xmark ms-1 me-2"></i> Only alphanumeric and dash "-" are allowed');
+        }
+    });
+    let worker_info = {{workers|jsonify}};
+    $('#worker_select').on('change', function(e, skipcallback) {
+        if (skipcallback) return;
+        let worker_id = $(this).val();
+        if (worker_id == 'unassigned') {
+            $('#site_select').val('unassigned');
+            $('#site_select').trigger('change', [true]);
+            return;
+        }
+        let worker_site = worker_info.filter(worker => worker.id == worker_id)[0].site;
+        if (worker_site == null) {
+            worker_site = 'unassigned';
+            $('#site_select').val(worker_site);
+            $('#site_select').trigger('change', [true]);
+        } else {
+            $('#site_select').val(worker_site.id)
+            $('#site_select').trigger('change', [true]);
+        }
+
+    });
+    $('#site_select').on('change', function(e, skipcallback) {
+        if (skipcallback) return;
+        let site_id = $(this).val();
+        if (site_id == 'unassigned') {
+            $('#worker_select').val('unassigned');
+            $('#worker_select').trigger('change', [true]);
+            return;
+        }
+        let worker_site = worker_info.filter(worker => worker.site != null && worker.site.id == site_id);
+        if (worker_site.length == 0) {
+            $('#worker_select').val('unassigned');
+            $('#worker_select').trigger('change', [true]);
+        } else {
+            $('#worker_select').val(worker_site[0].id);
+            $('#worker_select').trigger('change', [true]);
+        }
+    });
+})
+</script>
+
+{% endblock javascript %}

@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load dashboard_extras %}
+
+{% block navbar %}
+   {% with nav_header_displayed=True  %}
+    {{block.super}}
+   {% endwith %} 
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Add Workers' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name='Workers' %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %}
+        {% with formerrors=formerrors %}
+            {% include 'dashboard/components/dismissible-form-errors.html' %}
+        {% endwith %}
+        {% if site_specific %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Add Existing Worker to {{site_specific.name}}</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{% url 'sites_add_existing_workers' %}">
+                            <div class="bank-inner-details">
+                                {% csrf_token %}
+                                <input type="hidden" name="site_id" value="{{site_specific.id}}">
+                                {% if request.GET.redirect_to %}
+                                    <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                                {% endif %}
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label>Worker <span class="text-danger">*</span></label>
+                                            {% if unassigned_workers|length > 0 %}
+                                            <select class="form-control searchable" name="worker_id" required>
+                                                {% for worker in unassigned_workers %}
+                                                    <option value="{{worker.id}}">{{worker.first_name|addstr:" "|addstr:worker.last_name|to_title}}</option>
+                                                {% endfor %}
+                                            </select>
+                                            {% else %}
+                                            <select class="form-control searchable" name="worker_id" required disabled>
+                                                <option value="">No unassigned workers</option>
+                                            </select>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="blog-categories-btn px-0 row"> 
+                                <div class="bank-details-btn col-lg-3 col-md-12">
+                                    <button class="btn bank-cancel-btn me-2 w-100" type="submit" {% if unassigned_workers|length <= 0 %}disabled{% endif %}>Add Worker</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Add New Worker</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            {% if request.GET.redirect_to %}
+                                <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                            {% endif %}
+                            <div class="bank-inner-details">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker Email <span class="text-danger">*</span></label>
+                                            <input type="email" name="email" class="form-control" placeholder="Enter email here" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker Site <span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" name="site" required>
+                                                {% for sites_in_project in sites|select_group_by:"project.name"%}
+                                                    <option value="unassigned">Unassigned</option>
+                                                    <optgroup label="{{sites_in_project.0.project.name|to_title}}">
+                                                        {% for site in sites_in_project%}
+                                                            <option value="{{site.id}}" {% if request.GET.site_id|to_int == site.id %}selected{% endif %}>{{site.name|to_title}}</option>
+                                                        {% endfor %}
+                                                    </optgroup>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker First Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="first_name" class="form-control" placeholder="Enter first name here" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker Last Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="last_name" class="form-control" placeholder="Enter last name name here" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Date Joined <span class="text-danger">*</span></label>
+                                            <input type="date" name="date_joined" class="form-control" placeholder="Enter date joined here" required value="{% now "Y-m-d" %}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Role <span class="text-danger">*</span></label>
+                                            <select class="form-control searchable" required disabled>
+                                                <option value="{{worker_role.value}}">{{worker_role.name|to_title}}</option>
+                                            </select>
+                                            <input type="hidden" name="role" value="{{worker_role.value}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Department <span class="text-danger">*</span></label>
+                                            <input type="text" name="department" class="form-control" placeholder="Enter department name here" required value="{{site_specific.project.department}}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="form-group">
+                                            <label>Phone <span class="text-danger">*</span></label>
+                                            <input type="text" name="phone" class="form-control" placeholder="Enter phone number here" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-lg-12 col-md-12">
+                                        <div class="form-group">
+                                            <label>Worker Password <span class="text-danger">*</span></label>
+                                            <input type="password" name="password1" id="pwd_field" class="form-control" placeholder="Enter password here" required>
+                                            <ul class="mt-2">
+                                                <li class="text-danger" id="minimum_length_status"><i class="fas fa-xmark ms-1 me-2"></i> Minimum 8 characters required</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-md-12">
+                                        <div class="form-group">
+                                            <label>Confirm Password <span class="text-danger">*</span></label>
+                                            <input type="password" class="form-control" id="pwd_cnf_field" name="password2" placeholder="Same password as above" required>
+                                            <div class="d-none text-danger mt-2" id="pwd_cnf_msg"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="blog-categories-btn px-0 row"> 
+                                <div class="bank-details-btn col-lg-3 col-md-12">
+                                    <button class="btn bank-cancel-btn me-2 w-100" type="submit">Add Worker</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block javascript %}
+<script>
+    $(document).ready(function(){
+        $('#pwd_cnf_field').on('keyup', function(){
+            if($(this).val() != $('#pwd_field').val()){
+                $('#pwd_cnf_msg').removeClass('d-none').html('Password does not match');
+            }else{
+                $('#pwd_cnf_msg').addClass('d-none').html('');
+            }
+        });
+        $('#pwd_field').on('keyup', function () {
+            if($('#pwd_cnf_field').val() != ''){
+                if($('#pwd_cnf_field').val() != $('#pwd_field').val()){
+                    $('#pwd_cnf_msg').removeClass('d-none').html('Password does not match');
+                }else{
+                    $('#pwd_cnf_msg').addClass('d-none').html('');
+                }
+            }
+            if ($(this).val().length < 8) {
+                $('#minimum_length_status').removeClass('text-success').addClass('text-danger').html('<i class="fas fa-xmark ms-1 me-2"></i> Minimum 8 characters required');
+            } else {
+                $('#minimum_length_status').removeClass('text-danger').addClass('text-success').html('<i class="fas fa-check ms-1 me-2"></i> Minimum 8 characters required');
+            }
+        })
+    });
+</script>
+{% endblock javascript %}

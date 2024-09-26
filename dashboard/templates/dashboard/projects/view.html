@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load tz %}
+{% load static %}
+{% load dashboard_extras %}
+
+{% block css %}
+<style>
+
+.del-proj  {
+    background-color: #ff0000 !important;
+    color: white !important;
+    border: 1px solid #ff0000 !important;
+}
+
+.del-proj:hover {
+    background-color: #dd0000 !important;
+}
+
+.finish-proj {
+    background-color: #00dd00 !important;
+    color: white !important;
+    border: 1px solid #00dd00 !important;
+}
+
+.finish-proj:hover {
+    background-color: #00aa00 !important;
+}
+</style>
+{% endblock css %}
+
+
+{% block navbar %}
+    {% with nav_header_displayed=True %}
+        {{block.super}}
+    {% endwith %}
+{% endblock navbar %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='View Project' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name=project.name %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %} 
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="about-info">
+                            <h4>Project Details <span><a href="javascript:;"><i
+                                            class="fas fa-map"></i></a></span></h4>
+                        </div>
+                        <div class="student-profile-head">
+                            <div class="profile-bg-img">
+                                {% comment %} <img src="assets/img/profile-bg.jpg" alt="Profile"> {% endcomment %}
+                                <img src="https://placehold.co/600x400" alt="Profile">
+                            </div>
+                            <div class="row">
+                                <div class="col-xl-6 col-sm-12">
+                                    <div class="profile-user-box" style="justify-content: flex-start; padding-left: 20px;">
+                                        <div class="profile-user-img">
+                                            {% comment %} <img src="assets/img/profiles/avatar-18.jpg" alt="Profile"> {% endcomment %}
+                                            <img src="https://placehold.co/400x400"
+                                                 alt="Profile">
+                                        </div>
+                                        <div class="names-profiles">
+                                            <h4>{{project.name}}</h4>
+                                            <h5>Directed by <a href="{% url 'profile_view' project.director.id %}">{{project.director.first_name}} {{project.director.last_name}}</a></h5>
+                                            {% count_days start_date=project.start_date end_date="now" as daycount %}
+                                            <h5>
+                                                {% if daycount >= 0%}
+                                                    {{project.start_date}} - 
+                                                    {% if project.actual_end_date %}
+                                                        {{project.actual_end_date}}
+                                                    {% else %}
+                                                        Present
+                                                    {% endif %}
+                                                {% else %}
+                                                    Not Started
+                                                {% endif %}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% comment %} <div class="col-lg-1"></div> {% endcomment %}
+                                {% comment %} <div class="col-lg-4 col-md-4 d-flex align-items-center">
+                                    <div class="follow-group">
+                                        <div class="students-follows">
+                                            <h5>Followers</h5>
+                                            <h4>2850</h4>
+                                        </div>
+                                        <div class="students-follows">
+                                            <h5>Followers</h5>
+                                            <h4>2850</h4>
+                                        </div>
+                                        <div class="students-follows">
+                                            <h5>Followers</h5>
+                                            <h4>2850</h4>
+                                        </div>
+                                    </div>
+                                </div> {% endcomment %}
+                                <div class="col-xl-6 col-sm-12 mb-3 d-flex align-items-center">
+                                    <div class="follow-btn-group" style="justify-content: space-around;">
+                                        {% if can_edit %}
+                                        <a href="{% url 'projects_edit' project.id %}{% if request.GET.redirect_to %}?redirect_to={{request.GET.redirect_to}}{% endif %}" class="btn btn-info edit-proj">Edit Project</a>
+                                        {% endif %}
+                                        {% if can_mark_as_done %}
+                                        <form action="{% url 'projects_finish' %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="project_id" value="{{project.id}}">
+                                            {% if request.GET.redirect_to %}
+                                            <input type="hidden" name="redirect_to" value="{{request.GET.redirect_to}}">
+                                            {% endif %}
+                                            <button class="btn btn-info finish-proj warn-action">Finish Project</button>
+                                        </form>
+                                        {% endif %}
+                                        {% if can_delete %}
+                                        <form action="{% url 'projects_delete' %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="project_id" value="{{project.id}}">
+                                            <button type="submit" class="btn btn-info del-proj warn-action">Delete Project</button>
+                                        </form>
+                                        {% endif %}
+                                    </div> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="student-personals-grp">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="heading-detail">
+                                        <h4>Project Details:</h4>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="far fa-address-card"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Name </h4>
+                                            <h5>{{project.name}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="far fa-building"> </i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Department </h4>
+                                            <h5>{{project.department}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="far fa-map"> </i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Region </h4>
+                                            <h5>{{project.region}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Director</h4>
+                                            <h5><a href="{% url 'profile_view' project.director.id %}">{{project.director.first_name}} {{project.director.last_name}}</a></h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-calendar-days"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Start Date</h4>
+                                            <h5>{{project.start_date}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-calendar-days"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Expected End Date</h4>
+                                            <h5>{{project.expected_end_date}}
+                                                {% count_days start_date="now" end_date=project.expected_end_date as days_left %}
+                                                {% if days_left < 0 %}
+                                                    <span class="text-danger">({{days_left|abs_v}} days late)</span>
+                                                {% elif days_left == 0 %}
+                                                    <span class="text-warning">(Today)</span>
+                                                {% else %}
+                                                    <span class="text-success">({{days_left|abs_v}} days left)</span>
+                                                {% endif %}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Status</h4>
+                                            <h5>{% if project.actual_end_date %}
+                                                    Ended In {{project.actual_end_date}}
+                                                {% else %}
+                                                    {% if daycount < 0 %}
+                                                        Not Started Yet
+                                                    {% elif daycount == 0 %}
+                                                        Started Today
+                                                    {% else %}
+                                                        Ongoing ({{daycount}} days)
+                                                    {% endif %}
+                                                {% endif %}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="student-personals-grp">
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="heading-detail">
+                                        <h4>Description</h4>
+                                    </div>
+                                    <p style="text-align: justify;">
+                                        {% if not project.description or project.description|length <= 0 %}
+                                            No Description
+                                        {% else %}
+                                            {{project.description}}
+                                        {% endif %}
+                                    </p>
+
+                                    <div class="heading-detail">
+                                        <h4>Metrics</h4>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-sm-6 col-12 d-flex">
+                                          <div class="card bg-comman w-100">
+                                              <div class="card-body">
+                                                  <div class="db-widgets d-flex justify-content-between align-items-center">
+                                                      <div class="db-info">
+                                                          <h6>Total Sites</h6>
+                                                          <h3>{{counts.sites}}</h3>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <div class="col-sm-6 col-12 d-flex">
+                                          <div class="card bg-comman w-100">
+                                              <div class="card-body">
+                                                  <div class="db-widgets d-flex justify-content-between align-items-center">
+                                                      <div class="db-info">
+                                                          <h6>Total Workers</h6>
+                                                          <h3>{{counts.workers}}</h3>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                    </div>
+                                    <div class="heading-detail">
+                                        <h4>Timeline</h4>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 col-lg-12 col-xl-12 d-flex">
+                                            <div class="card flex-fill comman-shadow">
+                                                <div class="card-body">
+                                                    <div class="teaching-card">
+                                                        {% if sites and sites|length > 0 %}
+                                                        <ul class="steps-history">
+                                                        {% for site in sites %}
+                                                            <li>{{site.start_date|date:"M d, Y"}}</li>
+                                                        {% endfor %}
+                                                        </ul>
+                                                        <ul class="activity-feed">
+                                                        {% for site in sites %}
+                                                            <li class="feed-item d-flex align-items-center">
+                                                                <div class="dolor-activity">
+                                                                    <span class="feed-text1">
+                                                                        <a href="{% url 'sites_view' site.id %}">{{site.name}}</a>
+                                                                    </span>
+                                                                    <ul class="teacher-date-list">
+                                                                        <li><i class="fas fa-calendar-alt me-2"></i>
+                                                                        {% if site.actual_end_date %}
+                                                                            Ended in {{site.actual_end_date|date:"M d, Y"}}
+                                                                        {% else %}
+                                                                            Expected to end in {{site.expected_end_date|date:"M d, Y"}}
+                                                                        {% endif %}
+                                                                        </li>
+                                                                        <li></li>
+                                                                    </ul>
+                                                                </div>
+                                                                <div class="activity-btns ms-auto">
+                                                                {% count_days start_date=site.start_date end_date="now" as count_days %}
+                                                                {% if count_days >= 0 %}
+                                                                {% if site.actual_end_date %}
+                                                                    <button class="btn btn-info">Completed</button>
+                                                                {% else %}
+                                                                    <button class="btn btn-info">Ongoing</button>
+                                                                {% endif %}
+                                                                {% else %}
+                                                                    <button class="btn btn-info">Not Started</button>
+                                                                {% endif %}
+                                                                </div>
+                                                            </li>
+                                                        {% endfor %}
+                                                        {% else %}
+                                                        No Site Available
+                                                        {% endif %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% with sites=sites title='Project Sites' view_only=True %}
+            {% include 'dashboard/components/site-table.html' %}
+        {% endwith %} 
+    </div>
+</div>
+
+{% endblock content %}

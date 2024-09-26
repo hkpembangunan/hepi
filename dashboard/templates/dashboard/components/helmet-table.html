@@ -1,0 +1,118 @@
+{% load dashboard_extras %}
+<div class="card card-table comman-shadow" id="helmet_table">
+    <div class="card-body">
+
+        <div class="page-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h3 class="page-title">
+                        {% if title %}
+                            {{title}}
+                        {% else %}
+                            Helmets
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="col-auto text-end float-end ms-auto download-grp">
+                    {% comment %} <a href="students.html" class="btn btn-outline-gray me-2 active"><i
+                            class="feather-list"></i></a>
+                    <a href="students-grid.html" class="btn btn-outline-gray me-2"><i
+                            class="feather-grid"></i></a>
+                    <a href="#" class="btn btn-outline-primary me-2"><i
+                            class="fas fa-download"></i> Download</a> {% endcomment %}
+                    {% if user.role == "ADM" %}
+                    <a href="{% url 'helmets_add' %}?redirect_to={{request.get_full_path|addstr:"#helmet_table"|str_b64}}" class="btn btn-primary"><i
+                            class="fas fa-plus"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive row">
+            <table id="helmet-table"
+                class="table border-0 star-student table-hover table-center mb-0 datatables table-striped">
+                <thead class="student-thread">
+                    <tr class="enable-search">
+                        <th>Name</th>
+                        <th>User</th>
+                        <th>Site</th>
+                        <th>Project</th>
+                        {% if not view_only %}
+                        <th class="no-search">Action</th>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <th>Name</th>
+                        <th>User</th>
+                        <th>Site</th>
+                        <th>Project</th>
+                        {% if not view_only %}
+                        <th class="text-end">Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for helm in helmets %}
+                        <tr>
+                            {% comment %} <td>
+                                <div class="form-check check-tables">
+                                    <input class="form-check-input" type="checkbox"
+                                        value="something">
+                                </div>
+                            </td> {% endcomment %}
+                            <td><a href="{% url 'helmets_view' helm.identifier %}">{{helm.name|title}} <b>({{helm.identifier|upper}})</b></a></td>
+                            <td>
+                                {% if helm.user %}
+                                <a href="{% url 'profile_view' helm.user.id %}">{{helm.user.first_name}} {{helm.user.last_name}}</a>
+                                {% else %}
+                                <span class="text-danger">Not Assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if helm.site %}
+                                <a href="{% url 'sites_view' helm.site.id %}">{{helm.site.name}}</a>
+                                {% else %}
+                                <span class="text-danger">Not Assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if helm.site %}
+                                <a href="{% url 'projects_view' helm.site.project.id %}">{{helm.site.project}}</a>
+                                {% else %}
+                                <span class="text-danger">Not Assigned</span>
+                                {% endif %}
+                            </td>
+                            {% if not view_only %}
+                            <td class="text-end">
+                                <div class="actions ">
+                                    <a href="{% url 'helmets_view' helm.identifier|upper %}"
+                                        class="btn btn-sm bg-success-light me-2">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="
+                                        {% url 'helmets_edit' helm.identifier|upper %}
+                                    " class="btn btn-sm bg-success-light me-2">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    {% if user.role == "ADM" %}
+                                    <form method="POST" action="{% url 'helmets_delete' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="identifier"
+                                            value="{{helm.identifier}}">
+                                        <input type="hidden" name="redirect_to" value="{{request.get_full_path|addstr:"#helmet_table"|str_b64}}">
+                                        <button type="submit"
+                                            class="btn btn-sm bg-danger-light del-btn warn-action">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

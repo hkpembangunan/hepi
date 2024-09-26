@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load dashboard_extras %}
+
+
+{% block css %}
+<style>
+.bg-success {
+    background-color: #28a745 !important;
+}
+</style>
+{% endblock css %}
+
+{% block navbar %}
+    {% with nav_header_displayed=True %}
+        {{block.super}}
+    {% endwith %}
+{% endblock navbar %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content container-fluid">
+        {% with title='Profile' up_directory_name='HEPI' up_directory_url='dashboard'|get_url active_directory_name=profile.first_name|addstr:' '|addstr:profile.last_name %}
+            {% include 'dashboard/second_header.html' %}
+        {% endwith %}
+        {% with messages=messages %}
+            {% include 'dashboard/components/dismissible-alert.html' %}
+        {% endwith %} 
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="about-info">
+                            <h4>&nbsp;</h4>
+                        </div>
+                        <div class="student-profile-head">
+                            <div class="profile-bg-img">
+
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-12">
+                                    <div class="profile-user-box my-xl-0 my-3" style="float: left; margin-left: 20px; margin-right: 20px;">
+                                        <div class="profile-user-img">
+                                            <img src="https://placehold.co/400x400" alt="Profile">
+                                        </div>
+                                        <div class="names-profiles">
+                                            <h4>{{profile.first_name}} {{profile.last_name}}</h4>
+                                            <h5>{{profile.department}}</h5>
+                                            <h5>
+                                                {% autoescape off %}
+                                                {% if profile.role == "PRD" %}
+                                                    Director at {% get_active_project_by_director profile %} 
+                                                {% elif profile.role == "PIC" %}
+                                                    PIC at {% get_active_site_by_pic profile %}
+                                                {% elif profile.role == "WRK" %}
+                                                    Worker at {% get_active_site_by_worker profile %}
+                                                {% else %}
+                                                    Staff at PT Hutama Karya (Persero)
+                                                {% endif %}
+                                                {% endautoescape %}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-2 d-flex align-items-center">
+                                </div>
+                                <div class="col-lg-4 col-md-4 d-flex align-items-center mb-2 mb-md-0">
+                                    <div class="follow-btn-group" style="justify-content: space-around;">
+                                        {% if can_edit %}
+                                            <a href="{% url 'profile_edit' profile.id %}" class="btn btn-info edit-proj">Edit Profile</a>
+                                        {% endif %}
+                                    </div> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="student-personals-grp">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="heading-detail">
+                                        <h4>Personal Details:</h4>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="far fa-address-card"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Name </h4>
+                                            <h5>{{profile.first_name}} {{profile.last_name}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="far fa-building"> </i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Department </h4>
+                                            <h5>{{profile.department}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="fas fa-phone"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Phone (Indonesia)</h4>
+                                            <h5>{{profile.phone}}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="personal-activity">
+                                        <div class="personal-icons">
+                                            <i class="far fa-envelope"></i>
+                                        </div>
+                                        <div class="views-personal">
+                                            <h4>Email</h4>
+                                            <h5>{{profile.email}}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="student-personals-grp">
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="heading-detail">
+                                        <h4>Summary</h4>
+                                    </div>
+                                    <div class="row">
+                                      {% if profile.role == "PRD" %}
+                                      <div class="col-xl-4 col-sm-6 col-12 d-flex">
+                                          <div class="card bg-comman w-100">
+                                              <div class="card-body">
+                                                  <div class="db-widgets d-flex justify-content-between align-items-center">
+                                                      <div class="db-info">
+                                                          <h6>Total Project</h6>
+                                                          <h3>{{counts.projects}}</h3>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <div class="col-xl-4 col-sm-6 col-12 d-flex">
+                                          <div class="card bg-comman w-100">
+                                              <div class="card-body">
+                                                  <div class="db-widgets d-flex justify-content-between align-items-center">
+                                                      <div class="db-info">
+                                                          <h6>Total Sites</h6>
+                                                          <h3>{{counts.sites}}</h3>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <div class="col-xl-4 col-sm-6 col-12 d-flex">
+                                          <div class="card bg-comman w-100">
+                                              <div class="card-body">
+                                                  <div class="db-widgets d-flex justify-content-between align-items-center">
+                                                      <div class="db-info">
+                                                          <h6>Total Workers</h6>
+                                                          <h3>{{counts.workers}}</h3>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      {% elif profile.role == "PIC" %}
+                                      {% comment %} Only Total Site and Total Workers {% endcomment %}
+                                      <div class="col-sm-6 col-12 d-flex">
+                                          <div class="card bg-comman w-100">
+                                              <div class="card-body">
+                                                  <div class="db-widgets d-flex justify-content-between align-items-center">
+                                                      <div class="db-info">
+                                                          <h6>Total Sites</h6>
+                                                          <h3>{{counts.sites}}</h3>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <div class="col-sm-6 col-12 d-flex">
+                                          <div class="card bg-comman w-100">
+                                              <div class="card-body">
+                                                  <div class="db-widgets d-flex justify-content-between align-items-center">
+                                                      <div class="db-info">
+                                                          <h6>Total Workers</h6>
+                                                          <h3>{{counts.workers}}</h3>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      {% endif %}
+                                    </div>
+                                    {% if profile.role == "PRD" or profile.role == "PIC" %}
+                                    <div class="col-12 col-lg-12 col-xl-12 d-flex">
+                                        <div class="card flex-fill comman-shadow">
+                                            <div class="card-header d-flex align-items-center">
+                                                <h5 class="card-title">
+                                                {% if profile.role == "PRD" %}
+                                                    Director's Latest Project Timeline
+                                                {% elif profile.role == "PIC" %}
+                                                    PIC's Latest Site Timeline
+                                                {% endif %}
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="teaching-card">
+                                                    {% if showcase and showcase|length > 0 %}
+                                                    <ul class="steps-history">
+                                                    {% for project in showcase reversed %}
+                                                        <li>{{project.start_date|date:"M d, Y"}}</li>
+                                                    {% endfor %}
+                                                    </ul>
+                                                    <ul class="activity-feed">
+                                                    {% for project in showcase reversed %}
+                                                        <li class="feed-item d-flex align-items-center">
+                                                            <div class="dolor-activity">
+                                                                <span class="feed-text1">
+                                                                    {% if profile.role == "PRD" %}
+                                                                        <a href="{% url 'projects_view' project.id %}">{{project.name}}</a>
+                                                                    {% else %}
+                                                                        <a href="{% url 'sites_view' project.id %}">{{project.name}}</a>
+                                                                    {% endif %}
+                                                                </span>
+                                                                <ul class="teacher-date-list">
+                                                                    <li><i class="fas fa-calendar-alt me-2"></i>
+                                                                    {% if project.actual_end_date %}
+                                                                        Ended in {{project.actual_end_date|date:"M d, Y"}}
+                                                                    {% else %}
+                                                                        Expected to end in {{project.expected_end_date|date:"M d, Y"}}
+                                                                    {% endif %}
+                                                                    </li>
+                                                                    <li></li>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="activity-btns ms-auto">
+                                                            {% count_days start_date=project.start_date end_date="now" as count_days %}
+                                                            {% if count_days >= 0 %}
+                                                            {% if project.actual_end_date %}
+                                                                <button class="btn btn-info">Completed</button>
+                                                            {% else %}
+                                                                <button class="btn btn-info">Ongoing</button>
+                                                            {% endif %}
+                                                            {% else %}
+                                                                <button class="btn btn-info">Not Started</button>
+                                                            {% endif %}
+                                                            </div>
+                                                        </li>
+                                                    {% endfor %}
+                                                    {% else %}
+                                                    No Project/Site
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if profile.role == "WRK" %}
+                                    <div class="status mb-3">
+                                        <div id="stats-status" class="badge bg-secondary ms-2" style="font-size: 1.2rem;">Checking...</div>
+                                        {% if last_record %}
+                                        <div class="ms-2 mt-2" id="stats-last-record" style="display: block;">Last record in {{last_record.timestamp|date:"Y-m-d H:i:s"}} with <a href="{% url 'helmets_view' last_record.helmet.identifier %}">{{last_record.helmet.identifier}}</a></div>
+                                        {% else %}
+                                        <div class="ms-2 mt-2" id="stats-last-record" style="display: block;">No record</div>
+                                        {% endif %}
+                                    </div>
+                                    <div id="tempchart-wrk" class="mb-3"></div>
+                                    <h5 class="mb-3">Latest GPS Position</h5>
+                                    <div id="mapchart-wrk" {% if last_record_gps %}style="height: 500px;"{% endif %}></div>
+                                    {% if not last_record_gps %}
+                                    <div id="map-ndt" class="alert alert-info">No data available</div>
+                                    {% endif %}
+                                    {% endif %}
+                                    {% if not profile.role == "PRD" and not profile.role == "WRK" and not profile.role == "PIC" %}
+                                      No Summary
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}        
+
+{% block javascript %}
+
+{% if profile.role == "WRK" %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+</script>
+<script
+src="https://maps.googleapis.com/maps/api/js?key=AIzEk2CbHyjuJPuKqCPfBboHtG6XRQ&callback=drawMap&v=weekly"
+defer
+></script>
+
+{% endif %}
+{% endblock javascript %}

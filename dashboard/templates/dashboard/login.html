@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %} - Login {% endblock %}
+{% load static %}
+{% block css %}
+<style>
+    .login-left {
+        background: #000000 !important;
+    }
+    .login-left::after {
+        background-image: url({% static 'dashboard/img/icons/hk.png' %}) !important;
+        background-size: 100% !important;
+        background-repeat: no-repeat !important;
+        margin-right: 20px !important;
+        margin-top: 30px !important;
+    }
+</style>
+{% endblock css %}
+{% block content %}
+<div class="login-wrapper">
+    <div class="container">
+        <div class="loginbox">
+            <div class="login-left">
+                <img class="img-fluid company-logo" src="{% static 'dashboard/img/login-stock.png' %}" alt="Logo">
+            </div>
+            <div class="login-right">
+                <div class="login-right-wrap">
+                    <h1>Welcome to HEPI</h1>
+                    <p class="account-subtitle">A Helm Pintar Dashboard</p>
+                    {% with messages=messages %}
+                        {% include 'dashboard/components/dismissible-alert.html' %}
+                    {% endwith %} 
+                    <h2>Sign in</h2>
+                    <form method="POST">
+                        {% csrf_token %}
+                        {% for field in login_form %}
+                        <div class="form-group">
+                            <label>{{field.label}} <span class="login-danger">*</span></label>
+                            {{field}}
+                        </div>
+                        {% endfor %}
+                        <div class="form-group">
+                            <button class="btn btn-danger btn-block" type="submit">Login</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
